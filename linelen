@@ -1,0 +1,48 @@
+#!/bin/sh
+set -eu
+
+#while getopts "a:bcd" opt; do
+#	case $opt in
+#	a) echo "Got option a with value $OPTARG";;
+#	b) echo "Got option b";;
+#	c) echo "Got option c";;
+#	d) echo "Got option d";;
+#	*) echo "Usage..."; exit 1;;
+#	esac
+#done
+#shift $((OPTIND-1))
+
+usage() {
+	cat <<EOF
+Usage: linelen [-v] [-l L] [-s S] [FILE]...
+       linelen -h
+Print lines from FILE with L <= len(line) < S.
+
+  -l L Only print lines longer than(>=) L
+  -s S Only print lines shorter than (<) S
+  -h   Print this message and exit
+  -v   Be verbose
+EOF
+}
+
+len_min=
+len_max=
+
+while getopts "..." opt; do
+	case $opt in
+	v) set -x;;
+	h) usage; exit;;
+	l) len_min=$OPTARG;;
+	s) len_max=$OPTARG;;
+	*) usage >&2; exit 1;
+	esac
+done
+shift $((OPTIND-1))
+
+
+cat -- "$@" | while read -r line; do
+	len=${#line}
+	[ ! -z "len_min" ] && [ "$len" -lt "$len_min" ] && continue
+	[ ! -z "len_max" ] && [ "$len" -ge "$len_max" ] && continue
+	printf "%s\n" "$line"
+done
